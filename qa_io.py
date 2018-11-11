@@ -1,12 +1,10 @@
 import os
 import re
+import spacy
 import pandas as pd
 from copy import deepcopy
-import en_core_web_lg
 
-nlp = en_core_web_lg.load()#spacy.load('en_core_web_lg')
-
-
+nlp = spacy.load('en_core_web_lg')
 
 def get_story_id_from_input(input_fpath):
     """function to get story_id from "input.txt"
@@ -25,13 +23,16 @@ def get_story_data(story_ids, input_dir):
         with open('%s%s.story' % (input_dir[1:], s)) as f:
         #with open('developset/1999-W02-5.story') as f:
             story = f.read()
+            
+            story=story
+            
             m = re.search(r'HEADLINE:(.+)\n', story)
             if m: 
                 headline = m.group(1).strip()
             else: 
                 print('NO HEADLINE!')
             m = re.search(r'DATE:(.+)\n', story)
-
+            
             if m: 
                 date = m.group(1).strip()
             else:
@@ -128,10 +129,10 @@ def score(question_and_ans_data):
 
 def create_input():
     """ create an input file (list file names of stories)
+        required by pp. 3 of the instruction
+        """
 
-        required by pp. 3 of the instruction"""
-
-    fpath = os.listdir(dir_path + 'developset')
+    fpath = os.listdir('developset')
 
 
     # list the file path of all answers and questions
@@ -156,38 +157,45 @@ def create_input():
             f.writelines(os.path.splitext(s)[0])
 
             f.writelines('\n')
-
+"""
+# Question-id.response file is generated (for the scoring program Ellen gave us)
 def formatting(df):
-    for story_id in set(df['story_id']):
-        with open(os.getcwd()+'\\developset\\'+str(story_id)+'.response','w') as f:
-            for num in range(df[df['story_id']==q].shape[0]):
-                f.write('QuestionID: '+df[df['story_id']==q].loc[num,'question_id'])
-                f.write('\n')
-                f.write('Answer: '+df[df['story_id']==q].loc[num,'answer_pred'])
-                f.write('\n')
-                f.write('\n')
-        f.close()
+   for story_id in set(df['story_id']):
+       with open(os.getcwd()+'\\developset\\'+str(story_id)+'.response','w') as f:
+           for num in df[df['story_id']==story_id].index:
+               f.write('QuestionID: '+str(df[df['story_id']==story_id].loc[num,'question_id']).strip().replace('\r','').replace('\n',' '))
+               f.write('\n')
+               f.write('Answer: '+str(df[df['story_id']==story_id].loc[num,'answer_pred']).strip().replace('\r','').replace('\n',' '))
+               f.write('\n')
+               f.write('\n')
+"""
 
+# all responses for questions in one file
 def overall_formatting(df):
+    for i in range(df.shape[0]):
+        print('QuestionID: '+str(df.loc[i,'question_id']).strip().replace('\r','').replace('\n',' '))
+        print('Answer: '+str(df.loc[i,'answer_pred']).strip().replace('\r','').replace('\n',' ') + '\n')
+def overall_formatting_Output(df):
     with open(os.getcwd()+'\\developset\\'+'All.response','w') as f:
         for i in range(df.shape[0]):
-            f.write('QuestionID: '+df.loc[i,'question_id'].strip().replace('\r','').replace('\n',' '))
+            f.write('QuestionID: '+str(df.loc[i,'question_id']).strip().replace('\r','').replace('\n',' '))
             f.write('\n')
-            f.write('Answer: '+df.loc[i,'answer_pred'].strip().replace('\r','').replace('\n',' '))
+            f.write('Answer: '+str(df.loc[i,'answer_pred']).strip().replace('\r','').replace('\n',' '))
             f.write('\n\n')
     f.close()
 
+
+
+# grab all answers from the *.answers file and put it in a single file
 def grab_answers():
-    with open(os.getcwd()+'\\developset\\'+'input.txt','r') as input:
+    with open(os.getcwd() + '\\developset\\input.txt','r') as input:
         q=input.readlines()
-    input.close()
+
     Total_list=[]
     for id in q[1:]:        
-        with open(os.getcwd()+'\\developset\\'+id.replace('\n','')+'.answers','r') as f:
+        with open(os.getcwd()+'/developset/'+id.replace('\n','')+'.answers','r') as f:
             Total_list.extend(f.readlines())
-    f.close()
-    with open(os.getcwd()+'\\developset\\'+'All.answers','w') as writer:
+
+    with open(os.getcwd() + '/developset/perfect.answers','w') as writer:
         for data in Total_list:
             writer.write(data)
-    writer.close()
-    
